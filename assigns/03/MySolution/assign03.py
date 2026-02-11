@@ -132,8 +132,9 @@ def lambda_normalize(tm0):
     # TMapp(TMlam(param, body), arg)
     if tm0.ctag == "TMapp":
         if tm0.arg1.ctag != "TMlam":
-            arg1_n = lambda_normalize(tm0.arg1)
-            return lambda_normalize(TMapp(arg1_n, tm0.arg2))
+            return tm0 
+            # arg1_n = lambda_normalize(tm0.arg1)
+            # return lambda_normalize(TMapp(arg1_n, tm0.arg2))
         # body, param, arg
         tm0_n = term_gsubst(tm0.arg1.arg2, tm0.arg1.arg1, tm0.arg2)
         return lambda_normalize(tm0_n)
