@@ -133,7 +133,7 @@ def lambda_normalize(tm0):
     if tm0.ctag == "TMapp":
         if tm0.arg1.ctag != "TMlam":
             arg1_n = lambda_normalize(tm0.arg1)
-            return TMapp(arg1_n, tm0.arg2)
+            return lambda_normalize(TMapp(arg1_n, tm0.arg2))
         # body, param, arg
         tm0_n = term_gsubst(tm0.arg1.arg2, tm0.arg1.arg1, tm0.arg2)
         return lambda_normalize(tm0_n)
@@ -144,6 +144,42 @@ def lambda_normalize(tm0):
 
 ############################################################
 
+def church(n):
+    # church = f(x)
+    c = TMvar("x")
+    for i in range(n):
+        c = TMapp(TMvar("f"), c) 
+    return TMlam("f", TMlam("x", c))
+
+n = TMvar("n")
+f = TMvar("f")
+x = TMvar("x")
+
+def suc():
+    # n, f, x -> f(n f(x))
+    # lamda n -> n+1
+    c = TMapp(f, TMapp(TMapp(n, f), x))
+    return TMlam("n", TMlam("f", TMlam("x", c)))
+
+t = TMapp(TMapp(TMapp(suc(), church(0)), f), x)
+
+print(t)
+print(lambda_normalize(t))
+print("HERE")
+
+# for i in range(5):
+#     print(church(i))
+
+x = TMvar("x")
+y = TMvar("y")
+
+def tup(t1, t2): 
+    return TMlam("p", TMapp(TMapp(TMvar("p"), t1), t2))
+def fst(t):
+    return TMapp(t, TMlam("x", TMlam("y", x)))
+def sec(t):
+    return TMapp(t, TMlam("x", TMlam("y", y)))
+
 def ipred_in_lambda():
     """
     HX: 10 points
@@ -152,7 +188,24 @@ def ipred_in_lambda():
     A 'term' is returned by ipred_in_lambda() representing
     the predesessor function (that works on Church numerals).
     """
-    raise NotImplementedError
+    n = TMvar("n")
+    p = TMvar("p")
+    f = TMlam("f", TMvar("x"))
+    # <0, 0> -> <0, 1> -> <1, 2>
+    # sec(p), f(sec(p))
+    nxt = TMlam("p", tup(sec(p), TMapp(f, sec(p))))
+    # n, f, <0, 0>
+    ct = TMapp(TMapp(n, nxt), tup(church(0), church(0)))
+    pre = fst(ct)
+    # n -> n-1
+    return TMlam("n", pre)
+
+x = TMvar("x")
+f = TMvar("f")
+pred = ipred_in_lambda()
+# print(TMapp(pred, TMapp(church(0), TMapp(f, x))))
+print(TMapp(pred, church(0)))
+print("--------\n")
 
 ############################################################
 
@@ -176,3 +229,9 @@ def isqrt_in_lambda():
 # end of [HWXI/CS525-2026-Spring/assigns/03/assign03.py]
 ############################################################
 
+# TMvar("y")
+print(lambda_normalize(TMapp(TMlam("x", TMvar("x")), TMvar("y"))))
+# TMlam("y", TMvar("z"))
+print(lambda_normalize(TMapp(TMlam("x", TMlam("y", TMvar("x"))), TMvar("z"))))
+# TMvar("x")
+print(lambda_normalize(TMvar("x")))
